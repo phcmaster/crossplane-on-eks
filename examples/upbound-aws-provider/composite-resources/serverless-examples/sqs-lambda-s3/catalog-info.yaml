@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${name}
+  description: Serverless application with SQS → Lambda → S3
+spec:
+  type: infrastructure
+  lifecycle: experimental
+  owner: platform-team
