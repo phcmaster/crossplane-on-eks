@@ -1,0 +1,43 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: serverless-sqs-lambda-s3
+  title: Serverless App (SQS → Lambda → S3)
+  description: Deploys a serverless app with SQS, Lambda and S3 via Crossplane
+spec:
+  owner: platform-team
+  type: infrastructure
+
+  parameters:
+    - title: Provide basic information
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          title: Application Name
+          description: Unique name for the serverless app
+
+  steps:
+    - id: fetch-base
+      name: Fetch base files
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+
+    - id: publish
+      name: Publish to Git
+      action: publish:github
+      input:
+        repoUrl: github.com/my-org/${{ parameters.name }}
+        repoVisibility: private
+        description: Serverless app with SQS → Lambda → S3
+
+    - id: register
+      name: Register in Backstage
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
