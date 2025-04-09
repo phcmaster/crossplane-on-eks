@@ -29,7 +29,7 @@ spec:
       name: Publicando no Git
       action: publish:github
       input:
-        repoUrl: d2odpiejt3zpvd.cloudfront.net:443/gitea?repo=${{parameters.projectName}}
+        repoUrl: https://d2odpiejt3zpvd.cloudfront.net:443/gitea?repo=${{parameters.projectName}}
         defaultBranch: main
         description: Stack serverless com SQS, Lambda e S3
     - id: create-argocd-app
