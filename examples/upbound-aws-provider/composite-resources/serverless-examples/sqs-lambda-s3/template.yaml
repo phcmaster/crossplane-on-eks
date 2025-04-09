@@ -1,43 +1,57 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: serverless-sqs-lambda-s3
-  title: Serverless App (SQS → Lambda → S3)
-  description: Deploys a serverless app with SQS, Lambda and S3 via Crossplane
+  name: serverless-stack
+  title: Serverless Stack (SQS → Lambda → S3)
 spec:
   owner: platform-team
   type: infrastructure
 
   parameters:
-    - title: Provide basic information
+    - title: Informações
       required:
-        - name
+        - projectName
       properties:
-        name:
+        projectName:
           type: string
-          title: Application Name
-          description: Unique name for the serverless app
+          title: Nome do Projeto
 
   steps:
-    - id: fetch-base
-      name: Fetch base files
+    - id: fetchBase
+      name: Clonando base
       action: fetch:template
       input:
         url: ./skeleton
         values:
-          name: ${{ parameters.name }}
+          projectName: ${{ parameters.projectName }}
 
     - id: publish
-      name: Publish to Git
+      name: Publicando no Git
       action: publish:github
       input:
-        repoUrl: github.com/my-org/${{ parameters.name }}
-        repoVisibility: private
-        description: Serverless app with SQS → Lambda → S3
-
+        repoUrl: d2odpiejt3zpvd.cloudfront.net:443/gitea?repo=${{parameters.projectName}}
+        defaultBranch: main
+        description: Stack serverless com SQS, Lambda e S3
+    - id: create-argocd-app
+          name: Create ArgoCD App
+          action: cnoe:create-argocd-app
+          input:
+            appName: ${{parameters.projectName}}
+            appNamespace: ${{parameters.projectName}}
+            argoInstance: in-cluster
+            projectName: default
+            # necessary until we generate our own cert
+            repoUrl: https://d2odpiejt3zpvd.cloudfront.net:443/gitea/giteaAdmin/${{parameters.projectName}}
+            path: "manifests"
     - id: register
-      name: Register in Backstage
+      name: Registro no catálogo
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
         catalogInfoPath: '/catalog-info.yaml'
+        
+ output:
+    links:
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
